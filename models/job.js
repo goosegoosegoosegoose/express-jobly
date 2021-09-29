@@ -4,7 +4,7 @@ const db = require("../db");
 const { BadRequestError, NotFoundError, ExpressError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
 
-class Jobs {
+class Job {
   /** Create job, update job db, return new job data
    * 
    * data is { id, title, salary, equity, companyHandle }, returns same
@@ -14,19 +14,19 @@ class Jobs {
 
   static async create({ id, title, salary, equity, companyHandle }) {
     const dupeCheck = await db.query(`
-        SELECT id
+        SELECT title
           FROM jobs
-          WHERE id = $1`,
-        [id]);
+          WHERE title = $1`,
+        [title]);
 
     if (dupeCheck.rows[0]) throw new BadRequestError(`Duplicate job: ${id}`);
 
     const result = await db.query(`
         INSERT INTO jobs 
-          (id, title, salary, equity, company_handle)
-          VALUES ($1, $2, $3, $4, $5)
+          (title, salary, equity, company_handle)
+          VALUES ($1, $2, $3, $4)
           RETURNING id, title, salary, equity, company_handle AS "companyHandle"`,
-        [id, title, salary, equity, companyHandle]
+        [title, salary, equity, companyHandle]
     );
     return result.rows[0];
   }
@@ -47,7 +47,7 @@ class Jobs {
 
   // filter jobs through parameters
   static async filter(title, minSalary, hasEquity) {
-    if(!title && !minSalary && hasEquity === true){
+    if(!title && !minSalary && hasEquity == true){
       const jobRes = await db.query(`
           SELECT id, title, salary, equity, company_handle as "companyHandle"
             FROM jobs
@@ -55,50 +55,50 @@ class Jobs {
       if (!jobRes.rows[0]) throw new NotFoundError(`No job found`);
       return jobRes.rows;
     }
-    if(!title && hasEquity === false){
+    if(!title && (hasEquity == false || !hasEquity)){
       const jobRes = await db.query(`
           SELECT id, title, salary, equity, company_handle as "companyHandle"
             FROM jobs
-            WHERE min_salary <= $1`,
+            WHERE salary >= $1`,
           [minSalary]);
       if (!jobRes.rows[0]) throw new NotFoundError(`No job found`);
       return jobRes.rows;
     }
-    if(!minSalary && hasEquity === false){
+    if(!minSalary && (hasEquity == false || !hasEquity)){
       const jobRes = await db.query(`
           SELECT id, title, salary, equity, company_handle as "companyHandle"
             FROM jobs
-            WHERE title=$1`,
+            WHERE title ILIKE '%' || $1 || '%'`,
           [title]);
       if (!jobRes.rows[0]) throw new NotFoundError(`No job found`);
       return jobRes.rows;
     }
-    if(!title && hasEquity === true){
+    if(!title && hasEquity == true){
       const jobRes = await db.query(`
           SELECT id, title, salary, equity, company_handle as "companyHandle"
             FROM jobs
-            WHERE min_salary <= $1
+            WHERE salary >= $1
             AND equity > 0`,
           [minSalary]);
       if (!jobRes.rows[0]) throw new NotFoundError(`No job found`);
       return jobRes.rows;
     }
-    if(!minSalary && hasEquity === true){
+    if(!minSalary && hasEquity == true){
       const jobRes = await db.query(`
           SELECT id, title, salary, equity, company_handle as "companyHandle"
             FROM jobs
-            WHERE title=$1
+            WHERE title ILIKE '%' || $1 || '%'
             AND equity > 0`,
         [title]);
       if (!jobRes.rows[0]) throw new NotFoundError(`No job found`);
       return jobRes.rows;
     }
-    if(hasEquity === false){
+    if(hasEquity == false || !hasEquity){
       const jobRes = await db.query(`
           SELECT id, title, salary, equity, company_handle as "companyHandle"
             FROM jobs
-            WHERE title=$1
-            AND min_salary <= $2`,
+            WHERE title ILIKE '%' || $1 || '%'
+            AND salary >= $2`,
           [title, minSalary]);
       if (!jobRes.rows[0]) throw new NotFoundError(`No job found`);
       return jobRes.rows;
@@ -106,8 +106,8 @@ class Jobs {
     const jobRes = await db.query(`
         SELECT id, title, salary, equity, company_handle as "companyHandle"
           FROM jobs
-          WHERE title=$1
-          AND min_salary <= $2
+          WHERE title ILIKE '%' || $1 || '%'
+          AND salary >= $2
           AND equity > 0`,
         [title, minSalary]);
     if (!jobRes.rows[0]) throw new NotFoundError(`No job found`);
@@ -126,6 +126,25 @@ class Jobs {
     return job;
   }
 
+  // update job partially
+  static async update(id, data) {
+    const { setCols, values } = sqlForPartialUpdate(
+      data,
+      {
+        companyHandle: "company_handle"
+      });
+    const handleVarIdx = "$" + (values.length + 1);
+    
+    const querySql = `UPDATE jobs
+                      SET ${setCols}
+                      WHERE id = ${handleVarIdx}
+                      RETURNING id, title, salary, equity, company_handle AS "companyHandle"`;
+    const result = await db.query(querySql, [...values, id]);
+    const job = result.rows[0];
+    if (!job) throw new NotFoundError(`No job: ${id}`);
+    return job;
+  }
+
   // delete job by id
   static async remove(id){
     const result = await db.query(`
@@ -138,3 +157,5 @@ class Jobs {
     if(!job) throw new BadRequestError(`No job: ${id}`);
   }
 }
+
+module.exports = Job

@@ -244,6 +244,22 @@ describe("filter", () => {
       expect(e instanceof ExpressError).toBeTruthy();
     }
   });
+
+  test("fail if name doesnt exist", async () => {
+    try {
+      await Company.filter("invalid", 1, 3);
+    } catch (e) {
+      expect(e instanceof NotFoundError).toBeTruthy();
+    }
+  });
+
+  test("fail if no company in employee range", async () => {
+    try {
+      await Company.filter("invalid", 50, 100);
+    } catch (e) {
+      expect(e instanceof NotFoundError).toBeTruthy();
+    }
+  });
 })
 
 /************************************** get */

@@ -1,0 +1,31 @@
+{
+    "$id": "http://example.com/example.json",
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "default": {},
+    "required": [],
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer",
+            "title": "The id schema"
+        },
+        "title": {
+            "type": "string",
+            "title": "The title schema"
+        },
+        "salary": {
+            "type": "integer",
+            "title": "The salary schema"
+        },
+        "equity": {
+            "type": "integer",
+            "title": "The equity schema",
+            "default": 0
+        },
+        "company_handle": {
+            "type": "string",
+            "title": "The company_handle schema"
+        }
+    },
+    "additionalProperties": false
+}
