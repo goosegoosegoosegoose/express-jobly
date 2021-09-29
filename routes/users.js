@@ -71,7 +71,7 @@ router.get("/", ensureAdmin, async function (req, res, next) {
 router.get("/:username", ensureUserOrAdmin, async function (req, res, next) {
   try {
     const user = await User.get(req.params.username);
-    return res.json({ user });
+    return res.json(user);
   } catch (err) {
     return next(err);
   }
@@ -117,6 +117,16 @@ router.delete("/:username", ensureUserOrAdmin, async function (req, res, next) {
     return next(err);
   }
 });
+
+// POST apply for job
+router.post("/:username/jobs/:id", ensureUserOrAdmin, async (req, res, next) => {
+  try {
+    const app = await User.apply(req.params.username, req.params.id);
+    return res.json({applied: app.jobId})
+  } catch (e) {
+    return next(e);
+  }
+})
 
 
 module.exports = router;

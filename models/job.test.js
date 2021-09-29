@@ -2,6 +2,7 @@
 
 const db = require("../db.js");
 const { BadRequestError, NotFoundError, ExpressError } = require("../expressError");
+const { update } = require("./job.js");
 const Job = require("./job.js");
 const {
   commonBeforeAll,
@@ -59,21 +60,21 @@ describe("findAll", () => {
     let jobs = await Job.findAll();
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 1,
         title: "j1",
         salary: 1,
         equity: "0",
         companyHandle: "c1"
       },
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -89,14 +90,14 @@ describe("filter", () => {
     let jobs = await Job.filter("j", 2, true);
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -109,14 +110,14 @@ describe("filter", () => {
     let jobs = await Job.filter(undefined, 2, true);
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -129,14 +130,14 @@ describe("filter", () => {
     let jobs = await Job.filter("j", undefined, true);
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -149,14 +150,14 @@ describe("filter", () => {
     let jobs = await Job.filter("j", 2, false);
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -169,14 +170,14 @@ describe("filter", () => {
     let jobs = await Job.filter("j", 2, undefined);
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -189,14 +190,14 @@ describe("filter", () => {
     let jobs = await Job.filter(undefined, undefined, true);
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -209,14 +210,14 @@ describe("filter", () => {
     let jobs = await Job.filter(undefined, 2, false);
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -229,14 +230,14 @@ describe("filter", () => {
     let jobs = await Job.filter(undefined, 2, undefined);
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -249,21 +250,21 @@ describe("filter", () => {
     let jobs = await Job.filter("j", undefined, false);
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 1,
         title: "j1",
         salary: 1,
         equity: "0",
         companyHandle: "c1"
       },
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -276,21 +277,21 @@ describe("filter", () => {
     let jobs = await Job.filter("j", undefined, undefined);
     expect(jobs).toEqual([
       {
-        id: expect.any(Number),
+        id: 1,
         title: "j1",
         salary: 1,
         equity: "0",
         companyHandle: "c1"
       },
       {
-        id: expect.any(Number),
+        id: 2,
         title: "j2",
         salary: 2,
         equity: "0.01",
         companyHandle: "c2"
       },
       {
-        id: expect.any(Number),
+        id: 3,
         title: "j3",
         salary: 3,
         equity: "0.1",
@@ -307,3 +308,123 @@ describe("filter", () => {
     }
   });
 })
+
+describe("get", () =>  {
+  test("works", async () => {
+    let job = await Job.get(1);
+    expect(job).toEqual({
+      id: 1,
+      title: "j1",
+      salary: 1,
+      equity: "0",
+      companyHandle: "c1"
+    })
+  });
+
+  test("not found if no such company", async () => {
+    try {
+      await Job.get(10);
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
+
+// update
+describe("update", () => {
+  const updateData = {
+    title: "New",
+    salary: 0,
+    equity: 0
+  };
+
+  test("works", async () =>  {
+    let job = await Job.update(1, updateData);
+    expect(job).toEqual({
+      id: 1,
+      title: updateData.title,
+      salary: updateData.salary,
+      equity: "0",
+      companyHandle: "c1"
+    });
+
+    const result = await db.query(
+          `SELECT id, title, salary, equity, company_handle
+           FROM jobs
+           WHERE id=1`);
+    expect(result.rows).toEqual([{
+      id: 1,
+      title: "New",
+      salary: 0,
+      equity: "0",
+      company_handle: "c1"
+    }]);
+  });
+
+  test("works: null fields", async function () {
+    const updateDataSetNulls = {
+      title: "New",
+      salary: null,
+      equity: null
+    };
+
+    let job = await Job.update(1, updateDataSetNulls);
+    expect(job).toEqual({
+      id: 1,
+      title: "New",
+      salary: null,
+      equity: null,
+      companyHandle: "c1"
+    });
+
+    const result = await db.query(
+          `SELECT id, title, salary, equity, company_handle
+           FROM jobs
+           WHERE id=1`);
+    expect(result.rows).toEqual([{
+      id: 1,
+      title: "New",
+      salary: null,
+      equity: null,
+      company_handle: "c1"
+    }]);
+  });
+
+  test("not found if no such job", async function () {
+    try {
+      await Job.update(10, updateData);
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+
+  test("bad request with no data", async function () {
+    try {
+      await Job.update("j1", {});
+      fail();
+    } catch (err) {
+      expect(err instanceof BadRequestError).toBeTruthy();
+    }
+  });
+});
+
+// remove
+describe("remove", function () {
+  test("works", async function () {
+    await Job.remove(1);
+    const res = await db.query(
+        "SELECT id FROM jobs WHERE id=1");
+    expect(res.rows.length).toEqual(0);
+  });
+
+  test("not found if no such job", async function () {
+    try {
+      await Job.remove(10);
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});

@@ -123,7 +123,7 @@ class User {
    * Throws NotFoundError if user not found.
    **/
 
-  static async get(username) {
+  static async get(username1) {
     const userRes = await db.query(
           `SELECT username,
                   first_name AS "firstName",
@@ -132,14 +132,31 @@ class User {
                   is_admin AS "isAdmin"
            FROM users
            WHERE username = $1`,
-        [username],
+        [username1],
     );
 
-    const user = userRes.rows[0];
+    const userJobs = await db.query(
+          `SELECT ARRAY_AGG(j.id) AS "jobs"
+           FROM users AS u
+           LEFT JOIN applications AS a
+           ON u.username = a.username
+           LEFT JOIN jobs AS j
+           ON a.job_id = j.id
+           WHERE u.username=$1`,
+          [username1]
+    );
+    if (!userRes.rows[0]) throw new NotFoundError(`No user: ${username1}`);
 
-    if (!user) throw new NotFoundError(`No user: ${username}`);
-
-    return user;
+    const { username, firstName, lastName, email, isAdmin } = userRes.rows[0];
+    let jobs;
+    if (userJobs.rows[0].jobs[0] == null){
+      jobs = []
+    } else {
+      jobs = userJobs.rows[0].jobs
+    };
+    return {user: {
+      username, firstName, lastName, email, isAdmin, jobs
+    }}
   }
 
   /** Update user data with `data`.
@@ -203,6 +220,46 @@ class User {
     const user = result.rows[0];
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
+  }
+
+
+  // add user username and job id to many to many table. return job id
+  static async apply(username, id) {
+    const userCheck = await db.query(
+        `SELECT *
+         FROM users
+         WHERE username=$1`,
+        [username]
+    );
+    if (!userCheck.rows[0]) throw new NotFoundError(`No user: ${username}`);
+
+    const jobCheck = await db.query(
+        `SELECT *
+         FROM jobs
+         WHERE id=$1`,
+        [id]
+    );
+    if (!jobCheck.rows[0]) throw new NotFoundError(`No job: ${id}`);
+    
+    const duplicateCheck = await db.query(
+       `SELECT *
+        FROM applications
+        WHERE username = $1
+        AND job_id = $2`,
+      [username, id],
+    );
+    if (duplicateCheck.rows[0]) throw new BadRequestError(`Duplicate application`);
+
+    const result = await db.query(
+          `INSERT INTO applications
+           (username, job_id)
+           VALUES ($1, $2)
+           RETURNING job_id as "jobId"`,
+          [username, id]
+    )
+    const app = result.rows[0];
+    if (!app) throw new BadRequestError(`user: ${username} or job: ${id} not found`);
+    return app;
   }
 }
 

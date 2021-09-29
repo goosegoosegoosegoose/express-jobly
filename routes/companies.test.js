@@ -79,30 +79,67 @@ describe("GET /companies", function () {
     const resp = await request(app).get("/companies");
     expect(resp.body).toEqual({
       companies:
-          [
-            {
-              handle: "c1",
-              name: "C1",
-              description: "Desc1",
-              numEmployees: 1,
-              logoUrl: "http://c1.img",
-            },
-            {
-              handle: "c2",
-              name: "C2",
-              description: "Desc2",
-              numEmployees: 2,
-              logoUrl: "http://c2.img",
-            },
-            {
-              handle: "c3",
-              name: "C3",
-              description: "Desc3",
-              numEmployees: 3,
-              logoUrl: "http://c3.img",
-            },
-          ],
-    });
+        [
+          {
+            handle: "c1",
+            name: "C1",
+            description: "Desc1",
+            numEmployees: 1,
+            logoUrl: "http://c1.img",
+          },
+          {
+            handle: "c2",
+            name: "C2",
+            description: "Desc2",
+            numEmployees: 2,
+            logoUrl: "http://c2.img",
+          },
+          {
+            handle: "c3",
+            name: "C3",
+            description: "Desc3",
+            numEmployees: 3,
+            logoUrl: "http://c3.img",
+          },
+          {        
+            handle: "c4",
+            name: "C4",
+            numEmployees: 4,
+            description: "Desc4",
+            logoUrl: "http://c4.img"
+          }
+        ],
+    })
+  });
+
+  test("hits filter if query string exists", async () => {
+    const resp = await request(app).get("/companies?name=c&minEmployees=2");
+    expect(resp.body).toEqual({
+      companies:
+        [
+          {
+            handle: "c2",
+            name: "C2",
+            description: "Desc2",
+            numEmployees: 2,
+            logoUrl: "http://c2.img",
+          },
+          {
+            handle: "c3",
+            name: "C3",
+            description: "Desc3",
+            numEmployees: 3,
+            logoUrl: "http://c3.img",
+          },
+          {
+            handle: "c4",
+            name: "C4",
+            numEmployees: 4,
+            description: "Desc4",
+            logoUrl: "http://c4.img"
+          }
+        ]
+      });
   });
 
   test("fails: test next() handler", async function () {
@@ -129,19 +166,26 @@ describe("GET /companies/:handle", function () {
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
+        jobs: [{
+          id: 1,
+          title: "j1",
+          salary: 1,
+          equity: "0",
+        }]
       },
     });
   });
 
   test("works for anon: company w/o jobs", async function () {
-    const resp = await request(app).get(`/companies/c2`);
+    const resp = await request(app).get(`/companies/c4`);
     expect(resp.body).toEqual({
       company: {
-        handle: "c2",
-        name: "C2",
-        description: "Desc2",
-        numEmployees: 2,
-        logoUrl: "http://c2.img",
+        handle: "c4",
+        name: "C4",
+        numEmployees: 4,
+        description: "Desc4",
+        logoUrl: "http://c4.img",
+        jobs: []
       },
     });
   });

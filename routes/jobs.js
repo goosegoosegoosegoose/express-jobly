@@ -52,3 +52,43 @@ router.post("/", ensureAdmin, async (req, res, next) => {
     return next(e);
   }
 });
+
+
+// GET [id] => {job}
+router.get("/:id", async (req, res, next) => {
+  try {
+    const job = await Job.get(req.params.id);
+    return res.json({job});
+  } catch (e) {
+    return next(e);
+  }
+});
+
+// PATCH [id] {data} => {job}
+router.patch("/:id", ensureAdmin, async (req, res, next) => {
+  try {
+    const validator = jsonschema.validate(req.body, jobUpdateSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    };
+
+    const job = await Job.update(req.params.id, req.body);
+    return res.json({job})
+  } catch (err) {
+    return next(err);
+  }
+});
+
+// DELETE [id] => {deleted: id}
+
+router.delete("/:id", ensureAdmin, async (req, res, next) => {
+  try {
+    await Job.remove(req.params.id);
+    return res.json({ deleted: req.params.id })
+  } catch (e) {
+    return next(e);
+  }
+});
+
+module.exports = router;

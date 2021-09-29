@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db");
-const { BadRequestError, NotFoundError, ExpressError } = require("../expressError");
+const { BadRequestError, NotFoundError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
 
 class Job {
@@ -121,8 +121,8 @@ class Job {
           FROM jobs
           WHERE id=$1`,
         [id]);
-    const job = result.rows[0];
-    if(!job) throw new BadRequestError(`No job: ${id}`);
+    const job = jobRes.rows[0];
+    if (!job) throw new NotFoundError(`No job: ${id}`);
     return job;
   }
 
@@ -154,7 +154,7 @@ class Job {
             RETURNING id`,
           [id]);
     const job = result.rows[0];
-    if(!job) throw new BadRequestError(`No job: ${id}`);
+    if(!job) throw new NotFoundError(`No job: ${id}`);
   }
 }
 
